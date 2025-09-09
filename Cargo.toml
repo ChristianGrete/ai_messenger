@@ -1,0 +1,30 @@
+[package]
+authors = ["Christian Grete <webmaster@christiangrete.com>"]
+categories = ["web-programming", "api-bindings"]
+description = "Multi-provider AI messaging service"
+edition = "2024"
+homepage = "https://github.com/ChristianGrete/ai_messenger"
+keywords = ["ai", "character", "chat", "llm", "messaging", "ollama", "persona"]
+license = "MIT"
+name = "ai_messenger"
+readme = "README.md"
+repository = "https://github.com/ChristianGrete/ai_messenger"
+version = "0.1.0"
+
+[dependencies]
+anyhow = "1"
+anstyle = "1.0"
+axum = "0.7"
+chrono = { version = "0.4", features = ["serde"] }
+clap = { version = "4.5", features = ["cargo", "derive"] }
+dirs = "5.0"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
+toml = "0.8"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+[dev-dependencies]
+cocogitto = "6.3.0"
+tempfile = "3.8"
