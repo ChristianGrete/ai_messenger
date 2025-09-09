@@ -1,0 +1,45 @@
+# ai_messenger Configuration Example
+#
+# This file demonstrates all available configuration options
+# with their default values and explanations.
+
+[server]
+# Base path prefix for all routes (default: "")
+# Examples: "", "api", etc.
+# base_path = "api"
+
+# Server bind address (default: "127.0.0.1")
+# Use "0.0.0.0" to bind to all interfaces
+# host = "127.0.0.1"
+
+# Server port (default: 8080)
+# port = 3000
+
+[storage]
+# Custom data directory for persistent storage (optional)
+# If not set, uses platform-specific directory:
+# - macOS: ~/Library/Application Support/com.christiangrete.ai_messenger
+# - Linux: ~/.local/share/com.christiangrete.ai_messenger
+# - Windows: %APPDATA%\com.christiangrete.ai_messenger
+#
+# Supports home directory expansion:
+# - Use ~ at the beginning: "~/my_app_data"
+# - Use $HOME anywhere: "$HOME/.local/my_app_data"
+# data_dir = "~/.ai_messenger/data"
+
+# Custom cache directory for temporary files (optional)
+# If not set, uses platform-specific cache directory:
+# - macOS: ~/Library/Caches/com.christiangrete.ai_messenger
+# - Linux: ~/.cache/com.christiangrete.ai_messenger
+# - Windows: %LOCALAPPDATA%\com.christiangrete.ai_messenger
+#
+# Supports home directory expansion:
+# - Use ~ at the beginning: "~/my_app_cache"
+# - Use $HOME anywhere: "$HOME/.cache/my_app"
+# cache_dir = "~/.ai_messenger/cache"
+
+# Idea: Outsource service adapters, define them here:
+[adapters]
+# <service> = "<provider>/<adapter-version>"
+# llm = "venice/1.0.0"
+# tts = "fish-audio/1.0.0"
