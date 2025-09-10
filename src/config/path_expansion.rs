@@ -327,15 +327,40 @@ mod tests {
         assert!(expanded.to_string_lossy().contains("Documents"));
     }
 
+    /// RAII guard to restore an environment variable on drop
+    struct EnvVarGuard {
+        key: &'static str,
+        original: Option<String>,
+    }
+
+    impl EnvVarGuard {
+        fn unset(key: &'static str) -> Self {
+            let original = env::var(key).ok();
+            unsafe {
+                env::remove_var(key);
+            }
+            EnvVarGuard { key, original }
+        }
+    }
+
+    impl Drop for EnvVarGuard {
+        fn drop(&mut self) {
+            if let Some(ref value) = self.original {
+                unsafe {
+                    env::set_var(self.key, value);
+                }
+            } else {
+                unsafe {
+                    env::remove_var(self.key);
+                }
+            }
+        }
+    }
+
     #[test]
     fn test_expand_home_env_var_without_home() {
         // Test behavior when HOME is unset
-        let original_home = env::var("HOME").ok();
-
-        // Temporarily unset HOME (unsafe operation)
-        unsafe {
-            env::remove_var("HOME");
-        }
+        let _guard = EnvVarGuard::unset("HOME");
 
         let path = "~/test";
         let expanded = expand_home(path);
@@ -343,13 +368,6 @@ mod tests {
         // Should either expand via dirs::home_dir() or remain unchanged
         // We can't predict exact behavior but it shouldn't panic
         assert!(!expanded.as_os_str().is_empty());
-
-        // Restore original HOME if it existed (unsafe operation)
-        if let Some(home) = original_home {
-            unsafe {
-                env::set_var("HOME", home);
-            }
-        }
     }
     #[test]
     fn test_expand_home_complex_nesting() {

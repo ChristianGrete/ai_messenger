@@ -129,8 +129,7 @@ fn extract_config(matches: &ArgMatches) -> ServeConfig {
             // User explicitly set --port
             matches
                 .get_one::<String>("port")
-                .unwrap()
-                .parse()
+                .and_then(|s| s.parse().ok())
                 .unwrap_or(DEFAULT_SERVER_PORT)
         }
         _ => {
