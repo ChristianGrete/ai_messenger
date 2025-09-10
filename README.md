@@ -3,6 +3,7 @@
 > A Rust-based multi-provider AI messaging service. 🤖
 
 [![“Build” workflow status](https://github.com/ChristianGrete/ai\_messenger/actions/workflows/build.yml/badge.svg)](https://github.com/ChristianGrete/ai\_messenger/actions/workflows/build.yml)
+[![“Check” workflow status](https://github.com/ChristianGrete/ai\_messenger/actions/workflows/check.yml/badge.svg)](https://github.com/ChristianGrete/ai\_messenger/actions/workflows/check.yml)
 [![Buy Me a Coffee](https://img.shields.io/badge/Buy\_me\_a\_coffee-222?logo=buymeacoffee\&logoColor=222\&labelColor=fd0)](https://buymeacoffee.com/christiangrete)
 
 **ai\_messenger** is a Rust-based web service designed to communicate with various AI providers. It prioritizes privacy and uses an adapter-based design to seamlessly integrate different vendors. Its API is UX-focused, modeled after popular messaging platforms like _WhatsApp_, _Signal_, and _Messages_.
