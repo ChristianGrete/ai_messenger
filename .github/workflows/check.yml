@@ -2,7 +2,10 @@ name: Check
 
 on:
   push:
+    branches-ignore:
+      - main
   pull_request:
+    types: [reopened]
   workflow_dispatch:
 
 jobs:

@@ -4,14 +4,19 @@ use tracing_subscriber::{EnvFilter, fmt, prelude::*};
 
 static INIT: Once = Once::new();
 
+/// Helper to create EnvFilter with fallback logic
+fn get_env_filter(level: &str) -> EnvFilter {
+    EnvFilter::try_from_default_env()
+        .or_else(|_| EnvFilter::try_new(level))
+        .unwrap_or_else(|_| EnvFilter::new("info"))
+}
+
 /// Initialize tracing/logging system with the specified log level
 /// Safe to call multiple times - will only initialize once
 pub fn init_logging(level: &str) -> Result<()> {
     INIT.call_once(|| {
         // Create filter from level string
-        let filter = EnvFilter::try_from_default_env().unwrap_or_else(|_| {
-            EnvFilter::try_new(level).unwrap_or_else(|_| EnvFilter::new("info"))
-        });
+        let filter = get_env_filter(level);
 
         // Set up console logging with clean format
         let _ = tracing_subscriber::registry()
