@@ -38,8 +38,32 @@
 # - Use $HOME anywhere: "$HOME/.cache/my_app"
 # cache_dir = "~/.ai_messenger/cache"
 
-# Idea: Outsource service adapters, define them here:
-[adapters]
-# <service> = "<provider>/<adapter-version>"
-# llm = "venice/1.0.0"
-# tts = "fish-audio/1.0.0"
+# Service adapters configuration
+[adapters.llm]
+# Provider identifier and version
+provider = "ollama"
+version = "1.0.0"
+
+# Provider-specific configuration (passed through to adapter)
+[adapters.llm.config]
+# Ollama server configuration
+base_url = "http://localhost:11434"
+keep_alive = "5m"
+
+# Default model and parameters
+default_model = "llama3.2"
+temperature = 0.7
+top_p = 0.9
+
+# Optional: JSON output format for structured responses
+# format = "json"
+
+# Future TTS adapter example (commented out)
+# [adapters.tts]
+# provider = "fish-audio"
+# version = "1.0.0"
+#
+# [adapters.tts.config]
+# api_base = "https://api.fish.audio"
+# voice_id = "default"
+# speed = 1.0

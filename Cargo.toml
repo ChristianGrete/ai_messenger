@@ -9,22 +9,30 @@ license = "MIT"
 name = "ai_messenger"
 readme = "README.md"
 repository = "https://github.com/ChristianGrete/ai_messenger"
-version = "0.1.0"
+version = "0.0.1-alpha"
 
 [dependencies]
 anyhow = "1"
 anstyle = "1.0"
-axum = "0.7"
+async-trait = "0.1" # Temporary for legacy providers
+axum = { version = "0.7", features = ["json", "macros"] }
 chrono = { version = "0.4", features = ["serde"] }
 clap = { version = "4.5", features = ["cargo", "derive"] }
 dirs = "5.0"
+futures = "0.3"
+reqwest = { version = "0.11", features = [
+  "json",
+  "stream",
+] } # Temporary for legacy providers
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
+thiserror = "1.0" # Temporary for legacy providers
 tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
 toml = "0.8"
+tower = "0.5"
 tracing = "0.1"
+uuid = { version = "1.11", features = ["v4"] }
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 
 [dev-dependencies]
-cocogitto = "6.3.0"
 tempfile = "3.8"
