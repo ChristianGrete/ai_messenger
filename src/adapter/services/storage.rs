@@ -44,6 +44,7 @@ impl StorageAdapterWrapper {
     }
 }
 
+#[async_trait]
 impl AdapterService for StorageAdapterWrapper {
     fn service_name(&self) -> &'static str {
         "storage"
@@ -68,6 +69,7 @@ impl AdapterService for StorageAdapterWrapper {
     }
 }
 
+#[async_trait]
 #[async_trait]
 impl StorageAdapter for StorageAdapterWrapper {
     async fn store(&mut self, key: &str, data: &[u8]) -> Result<(), ServiceError> {

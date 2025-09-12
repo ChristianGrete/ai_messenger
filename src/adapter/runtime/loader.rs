@@ -75,15 +75,18 @@ impl<'a> ModuleLoader<'a> {
     /// Extract provider name and version from module path
     /// Expected path: data/adapters/{service}/{provider}/{version}/adapter.wasm
     fn extract_metadata(&self, module_path: &Path) -> Result<(String, String), ServiceError> {
+        const PROVIDER_OFFSET: usize = 2;
+        const VERSION_OFFSET: usize = 3;
+
         let path_str = module_path.to_string_lossy();
         let parts: Vec<&str> = path_str.split('/').collect();
 
         // Find the adapters directory and extract provider/version
         if let Some(adapters_index) = parts.iter().position(|&part| part == "adapters") {
-            let provider = parts.get(adapters_index + 2).ok_or_else(|| {
+            let provider = parts.get(adapters_index + PROVIDER_OFFSET).ok_or_else(|| {
                 ServiceError::InvalidConfig("Cannot extract provider from path".to_string())
             })?;
-            let version = parts.get(adapters_index + 3).ok_or_else(|| {
+            let version = parts.get(adapters_index + VERSION_OFFSET).ok_or_else(|| {
                 ServiceError::InvalidConfig("Cannot extract version from path".to_string())
             })?;
 

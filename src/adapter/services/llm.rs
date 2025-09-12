@@ -44,6 +44,7 @@ impl LlmAdapterWrapper {
     }
 }
 
+#[async_trait]
 impl AdapterService for LlmAdapterWrapper {
     fn service_name(&self) -> &'static str {
         "llm"
@@ -68,6 +69,7 @@ impl AdapterService for LlmAdapterWrapper {
     }
 }
 
+#[async_trait]
 #[async_trait]
 impl LlmAdapter for LlmAdapterWrapper {
     async fn send_message(&mut self, message: &str) -> Result<String, ServiceError> {

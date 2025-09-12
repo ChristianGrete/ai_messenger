@@ -16,7 +16,7 @@ pub enum ServiceError {
 }
 
 /// Base trait for all service adapters
-#[allow(async_fn_in_trait)] // Used only within our crate, Send bounds not critical
+#[async_trait]
 pub trait AdapterService: Send + Sync {
     /// Service name (e.g., "llm", "storage", "tts")
     fn service_name(&self) -> &'static str;
@@ -45,6 +45,7 @@ pub trait LlmAdapter: AdapterService {
     // Stream message response (future enhancement)
     // async fn stream_message(&mut self, message: &str) -> Result<impl Stream<Item = String>, ServiceError>;
 }
+
 /// Trait for storage service adapters
 #[async_trait]
 pub trait StorageAdapter: AdapterService {
