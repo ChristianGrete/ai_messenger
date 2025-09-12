@@ -49,13 +49,6 @@ pub struct AdapterManifest {
 }
 ```
 
-### Host-Side Loading
-
-- **Automatic Discovery**: AdapterRegistry loads manifests during adapter initialization
-- **Path Support**: Both `latest/` and versioned directory structures supported
-- **Default Fallback**: Missing manifests auto-generated from config values (no display_name)
-- **Frontend Freedom**: UI decides fallback strategy for missing display_name
-
 ### File Locations
 
 ```
@@ -63,54 +56,26 @@ data_dir/adapters/{service}/{provider}/latest/manifest.json     # Preferred
 data_dir/adapters/{service}/{provider}/{version}/manifest.json  # Fallback
 ```
 
-### Design Philosophy
+## WASM Component Model Architecture
 
-- **No Auto-Formatting**: display_name stays None if not explicitly set
-- **Separation of Concerns**: Backend provides raw data, frontend handles presentation
-- **UI Flexibility**: Frontend can implement different fallback strategies
+The WASM Component Model is **fully implemented and actively used** in the current system.
 
-## WASM Runtime Architecture
+### WIT Interface Definition
 
-The WASM adapter system follows a **generic runtime with service-specific traits** pattern for maximum scalability and type safety.
+The complete interface is defined in `wit/llm.wit` with the `llm-adapter` world:
 
-### File Structure
-
-```
-src/adapter/
-├── mod.rs                    # Public API exports
-├── runtime/                  # Generic WASM Runtime
-│   ├── mod.rs               # WasmRuntime struct
-│   ├── instance.rs          # WasmInstance management
-│   └── loader.rs            # WASM module loading
-├── services/        # Service-specific implementations
-│   ├── mod.rs       # AdapterRegistry with manifest loading
-│   ├── llm.rs       # LLM service adapter (MVP: HTTP bypass)
-│   └── storage.rs   # Storage service adapter (MVP: HTTP bypass)
-└── traits.rs        # Common adapter traits
-```
+- **prepare_request**: Transform generic chat requests into provider-specific HTTP configurations
+- **parse_response**: Convert provider responses back into generic chat responses
+- **parse_stream_chunk**: Handle streaming responses for real-time communication
 
 ### Design Pattern
 
-**Generic Runtime + Service-Specific Traits**:
+**WASM Component Model with WIT Interfaces**:
 
-- Each service defines its own Rust trait (e.g., `LlmAdapter`, `StorageAdapter`)
-- Single `WasmRuntime` loads and manages all WASM modules
-- Service-specific wrappers provide type-safe interfaces
-- `AdapterRegistry` routes requests to appropriate adapters
-
-**Scalability**: New services require only:
-
-1. New WIT interface in `wit/`
-2. New trait in `services/`
-3. Registry entry
-4. Config schema is already generic
-
-**Benefits**:
-
-- Type-safe service interfaces
-- Unified WASM loading/management
-- Easy testing via trait mocking
-- Config-driven adapter loading
+- Each service defines WIT interfaces in `wit/` directory
+- Components implement the interface using `wit-bindgen`
+- Host uses `wasmtime::component::bindgen` for type-safe integration
+- `AdapterRegistry` manages component lifecycle and discovery
 
 ## Implementation Philosophy
 
@@ -158,35 +123,24 @@ After any code changes, always run the complete QA pipeline to ensure code quali
 
 This pipeline must pass completely before committing changes. Use `cargo fmt && cargo clippy && cargo test` for efficiency.
 
-## MVP Implementation Status
+## Current Implementation Status
 
-### What's Currently Working
+### What's Working
 
 - ✅ **Core Server**: Axum-based HTTP server with health endpoint
 - ✅ **Config System**: TOML-based configuration with path expansion
 - ✅ **CLI Interface**: Serve command with config discovery
 - ✅ **Message Endpoint**: `/v1/message/:id` fully functional
-- ✅ **Adapter Architecture**: Complete WASM infrastructure (dormant)
+- ✅ **WASM Component Model**: Complete end-to-end WASM Component pipeline
+- ✅ **LLM Adapters**: Ollama adapter using WASM Components
 - ✅ **Manifest System**: Host-side manifest loading with fallbacks
-- ✅ **Ollama Integration**: Direct HTTP calls to local Ollama instance
+- ✅ **Adapter Registry**: Dynamic adapter discovery and loading
 
-### Current MVP Limitations
+### Current Scope
 
-- 🔄 **WASM Bypassed**: Adapters use direct HTTP calls instead of WASM modules
 - 🔄 **Single Provider**: Only Ollama LLM adapter implemented
-- 🔄 **No Persistence**: No storage adapter active
+- 🔄 **No Storage Adapters**: Infrastructure ready but no implementations
 - 🔄 **Limited Routes**: Only message sending implemented
-
-### WASM Activation Requirements
-
-To activate WASM adapters (when needed):
-
-1. Uncomment WASM loading in `src/adapter/services/llm.rs` and `storage.rs`
-2. Implement WIT bindings for adapter communication
-3. Build actual WASM modules for each provider
-4. Replace direct HTTP calls with WASM function calls
-
-**Design Decision**: MVP intentionally bypasses WASM for rapid development while preserving the complete architecture for future activation.
 
 ## Code Analysis & Change Protocol
 
@@ -217,96 +171,67 @@ To activate WASM adapters (when needed):
 
 ## Project File Structure
 
-### Routes Structure (Current Implementation Status)
+### Routes Structure
 
 ```
-src/
-  routes/
-    health.rs          # GET / (✅ Implemented)
-    v1/
-      mod.rs           # build & return v1 router (✅ Implemented)
-      message/         # POST /v1/message/:id (send message, get AI response)
-        mod.rs         # ✅ Fully functional with HTTP bypass to Ollama
-      sender/          # 🚧 Partially implemented
-        mod.rs         # ✅ Basic structure
-        profile.rs     # 🚧 Stub implementation
-      recipients/      # � Future implementation
-        mod.rs
-      recipient/       # � Future implementation (/v1/recipient/:id/*)
-        mod.rs
-        profile.rs
-        picture.rs
-      conversations/   # � Future implementation
-        mod.rs
-      conversation/    # � Future implementation (/v1/conversation/:id/*)
-        mod.rs
-        # history / pagination handlers
+src/routes/
+├── health.rs          # GET / (✅ Implemented)
+└── v1/
+    ├── mod.rs         # v1 router (✅ Implemented)
+    ├── message/       # POST /v1/message/:id (✅ Fully functional)
+    │   └── mod.rs
+    ├── sender/        # 🚧 Partially implemented
+    │   ├── mod.rs
+    │   └── profile.rs
+    ├── recipients/    # � Future implementation
+    ├── recipient/     # � Future implementation (/v1/recipient/:id/*)
+    ├── conversations/ # � Future implementation
+    └── conversation/  # � Future implementation (/v1/conversation/:id/*)
 ```
 
-### Config System Structure (✅ Complete)
-
-```
-src/config/
-├── mod.rs           # Public exports
-├── creation.rs      # Config file creation
-├── defaults.rs      # Default values and constants
-├── discovery.rs     # Config file discovery
-├── loader.rs        # Config loading with fallbacks
-├── paths.rs         # Path expansion utilities
-└── schema.rs        # TOML schema with adapter support
-```
-
-### WASM Adapter Structure (✅ Infrastructure Complete, MVP Uses HTTP Bypass)
+### WASM Adapter Structure
 
 ```
 src/adapter/
 ├── mod.rs           # Public API exports
-├── manifest.rs      # Adapter manifest system with host-side loading
-├── runtime/         # Generic WASM Runtime (complete infrastructure)
+├── manifest.rs      # Adapter manifest system
+├── wit.rs           # Host-side WIT bindings (✅ Active)
+├── runtime/         # WASM Runtime (✅ Functional)
 │   ├── mod.rs       # WasmRuntime struct
 │   ├── instance.rs  # WasmInstance management
 │   └── loader.rs    # WASM module loading
 ├── services/        # Service-specific implementations
-│   ├── mod.rs       # AdapterRegistry with manifest loading
-│   ├── llm.rs       # LLM service adapter (MVP: HTTP bypass)
-│   └── storage.rs   # Storage service adapter (MVP: HTTP bypass)
+│   ├── mod.rs       # AdapterRegistry
+│   ├── llm.rs       # LLM service adapter (✅ WASM integrated)
+│   └── storage.rs   # Storage service adapter (infrastructure ready)
 └── traits.rs        # Common adapter traits
+
+adapters/llm/ollama/ # ✅ Complete WASM Component
+├── src/
+│   ├── lib.rs       # WASM Component with WIT bindings
+│   └── bindings.rs  # Generated WIT bindings
+├── wit/
+│   └── world.wit    # Component interface definition
+└── Cargo.toml       # cargo-component configuration
+
+wit/llm.wit         # ✅ Master WIT interface definition
+scripts/build_adapter_llm_ollama.sh  # ✅ WASM Component build pipeline
 ```
 
-## Notes on Route File Layout
+## Route File Layout Notes
 
-- URL hierarchy mirrored directly under `routes/v1/`.
-- Mixed plural/singular by design: plural for collections; singular dedicated subtrees for focused item operations.
-- `message/` is an action endpoint module (not a collection) → organized as directory for handler logic.
-- **`mod.rs` files**: Pure module composition only - build routers, export submodules, NO handler logic.
-- Handlers: extract / validate → delegate to service/domain.
-- Avoid premature abstraction layers; add only when duplication or complexity emerges.
-
-## Old → New Mapping (For Future Route Implementation)
-
-- `routes/user/*` → `routes/v1/sender/*`
-- `routes/contact/:id/*` → `routes/v1/recipient/:id/*` (item handling inside `recipient/` tree)
-- `routes/chat/:id` → `routes/v1/message/:id` (send a message, receive a response)
-- `routes/<undefined>` → `routes/v1/conversation/:id/*` (chat history loading with pagination)
-- `routes/contacts/*` → `routes/v1/recipients/*` (list all available recipients)
-- `routes/chats/*` → `routes/v1/conversations/*` (list all existing conversations)
+- URL hierarchy mirrored directly under `routes/v1/`
+- Mixed plural/singular by design: plural for collections; singular for item operations
+- `message/` is an action endpoint module (not a collection)
+- **`mod.rs` files**: Pure module composition only - NO handler logic
+- Handlers: extract / validate → delegate to service/domain
 
 ## Base-Path Configuration
 
-**Note**: Base-path support is already implemented in the config system (`server.base_path`).
+Base-path support is implemented in the config system (`server.base_path`). Defaults to empty string.
 
-- The Base-Path is dynamically configurable and defaults to an empty string (`""`).
-- It can be set via configuration file: `[server] base_path = "api"`
-- The routing logic ensures that the Base-Path is applied globally without altering the existing route definitions.
-
-### Example
-
-- Default behavior (no Base-Path):
-  - `/` → Health endpoint
-  - `/v1/recipient/:id/name` → Recipient name endpoint
-- With `base_path = "api"`:
-  - `/api` → Health endpoint
-  - `/api/v1/recipient/:id/name` → Recipient name endpoint
+- Set via config: `[server] base_path = "api"`
+- Example: `/api/v1/message/:id` instead of `/v1/message/:id`
 
 ## Additional Guardrails for Copilot
 
