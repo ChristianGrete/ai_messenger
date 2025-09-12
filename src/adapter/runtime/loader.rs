@@ -31,13 +31,12 @@ impl<'a> ModuleLoader<'a> {
         ModuleLoader { engine }
     }
 
-    /// Load and compile WASM component from file
+    /// Load WASM module from file and create instance
     pub async fn load_module(
         &self,
         module_path: &Path,
         config_json: &str,
     ) -> Result<WasmInstance, ServiceError> {
-        // Validate file exists
         if !module_path.exists() {
             return Err(ServiceError::InitializationFailed(format!(
                 "WASM module not found: {}",
@@ -45,19 +44,32 @@ impl<'a> ModuleLoader<'a> {
             )));
         }
 
-        // Read WASM bytes
-        let wasm_bytes = tokio::fs::read(module_path)
-            .await
-            .map_err(LoaderError::FileReadError)?;
+        // Read and compile the WASM component
+        let module_bytes = std::fs::read(module_path).map_err(|e| {
+            ServiceError::InitializationFailed(format!("Failed to read module file: {e}"))
+        })?;
 
-        // Compile component
-        let component = Component::new(self.engine, &wasm_bytes)
-            .map_err(|e| LoaderError::CompilationError(e.to_string()))?;
+        let component = Component::from_binary(self.engine, &module_bytes).map_err(|e| {
+            ServiceError::InitializationFailed(format!("Failed to compile WASM component: {e}"))
+        })?;
 
-        // Extract metadata from file path
-        let (provider_name, version) = self.extract_metadata(module_path)?;
+        // Extract provider info from path
+        let provider_name = module_path
+            .parent()
+            .and_then(|p| p.parent())
+            .and_then(|p| p.file_name())
+            .and_then(|n| n.to_str())
+            .unwrap_or("unknown")
+            .to_string();
 
-        // Create instance
+        let version = module_path
+            .parent()
+            .and_then(|p| p.file_name())
+            .and_then(|n| n.to_str())
+            .filter(|n| *n != "latest")
+            .unwrap_or("0.0.1-alpha")
+            .to_string();
+
         let mut instance = WasmInstance::new(
             self.engine,
             component,
@@ -71,7 +83,6 @@ impl<'a> ModuleLoader<'a> {
 
         Ok(instance)
     }
-
     /// Extract provider name and version from module path
     /// Expected path: data/adapters/{service}/{provider}/{version}/adapter.wasm
     fn extract_metadata(&self, module_path: &Path) -> Result<(String, String), ServiceError> {

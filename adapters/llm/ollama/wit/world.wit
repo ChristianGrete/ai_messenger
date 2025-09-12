@@ -1,0 +1,143 @@
+package ai-messenger:llm@0.0.1-alpha;
+
+interface types {
+  /// Role of a message in the conversation
+  variant role {
+    system,
+    user,
+    assistant,
+    function,
+    tool,
+    /// For roles not covered by standard types
+    other(string),
+  }
+
+  /// A single message in a conversation
+  record message {
+    role: role,
+    content: string,
+  }
+
+  /// Reason why generation finished
+  variant finish-reason {
+    stop,
+    length,
+    content-filter,
+    /// For reasons not covered by standard types
+    other(string),
+  }
+
+  /// Request for LLM chat completion
+  record chat-request {
+    /// Array of messages in the conversation
+    messages: list<message>,
+
+    /// Model identifier (provider-specific)
+    model: string,
+
+    /// Maximum number of completion tokens to generate
+    max-completion-tokens: option<u32>,
+
+    /// Sampling temperature (0.0 to 2.0, typically 0.0-1.0)
+    temperature: option<f32>,
+
+    /// Top-p sampling parameter (0.0 to 1.0)
+    top-p: option<f32>,
+
+    /// Whether to stream the response (providers may reject if unsupported)
+    enable-streaming: option<bool>,
+
+    /// Stop sequences
+    stop: option<list<string>>,
+
+    /// Random seed for deterministic outputs
+    seed: option<u32>,
+
+    /// User identifier for tracking
+    user: option<string>,
+
+    /// Provider-specific parameters as JSON string
+    provider-params: option<string>,
+  }
+
+  /// Token usage statistics
+  record usage {
+    prompt-tokens: u32,
+    completion-tokens: u32,
+    total-tokens: u32,
+  }
+
+  /// Response from LLM chat completion
+  record chat-response {
+    /// Generated content
+    content: string,
+
+    /// Model that generated the response
+    model: string,
+
+    /// Reason why generation finished
+    finish-reason: option<finish-reason>,
+
+    /// Token usage statistics
+    usage: option<usage>,
+  }
+
+  /// HTTP request configuration
+  record http-config {
+    /// Full URL to send the request to
+    url: string,
+
+    /// HTTP headers as key-value pairs
+    headers: list<tuple<string, string>>,
+
+    /// Request body as JSON string
+    body: string,
+  }
+
+  /// HTTP response from the provider API
+  record http-response {
+    /// HTTP status code
+    status-code: u16,
+
+    /// Response headers as key-value pairs
+    headers: list<tuple<string, string>>,
+
+    /// Response body as string
+    body: string,
+  }
+
+  /// Streaming chunk for real-time responses
+  record stream-chunk {
+    /// Sequence number for chunk ordering/debugging
+    sequence: u64,
+
+    /// Partial content (empty if this is metadata-only chunk)
+    content: string,
+
+    /// Whether this is the final chunk
+    is-final: bool,
+
+    /// Usage statistics (typically only in final chunk)
+    usage: option<usage>,
+
+    /// Finish reason (typically only in final chunk)
+    finish-reason: option<finish-reason>,
+  }
+}
+
+interface llm {
+  use types.{chat-request, chat-response, http-config, http-response, stream-chunk};
+
+  /// Transform a chat request into HTTP configuration
+  prepare-request: func(request: chat-request) -> result<http-config, string>;
+
+  /// Parse HTTP response into chat response
+  parse-response: func(response: http-response) -> result<chat-response, string>;
+
+  /// Parse streaming response chunk
+  parse-stream-chunk: func(chunk: string) -> result<option<stream-chunk>, string>;
+}
+
+world llm-adapter {
+  export llm;
+}

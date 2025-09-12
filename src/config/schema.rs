@@ -82,6 +82,17 @@ impl ServiceAdapterConfig {
             .join("adapter.wasm")
     }
 
+    /// Generate the manifest path for this adapter
+    #[allow(dead_code)]
+    pub fn adapter_manifest_path(&self, data_dir: &Path, service: &str) -> PathBuf {
+        data_dir
+            .join("adapters")
+            .join(service)
+            .join(&self.provider)
+            .join(&self.version)
+            .join("manifest.json")
+    }
+
     /// Get the provider config as JSON string for WASM
     #[allow(dead_code)]
     pub fn config_as_json(&self) -> Result<String, toml::ser::Error> {
@@ -421,6 +432,21 @@ port = 3000
 
         let expected = std::path::PathBuf::from("/data/adapters/llm/ollama/1.0.0/adapter.wasm");
         assert_eq!(module_path, expected);
+    }
+
+    #[test]
+    fn test_adapter_manifest_path_generation() {
+        let adapter = ServiceAdapterConfig {
+            provider: "ollama".to_string(),
+            version: "1.0.0".to_string(),
+            config: toml::Value::Table(Table::new()),
+        };
+
+        let data_dir = std::path::Path::new("/data");
+        let manifest_path = adapter.adapter_manifest_path(data_dir, "llm");
+
+        let expected = std::path::PathBuf::from("/data/adapters/llm/ollama/1.0.0/manifest.json");
+        assert_eq!(manifest_path, expected);
     }
 
     #[test]

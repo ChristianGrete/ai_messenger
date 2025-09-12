@@ -42,7 +42,7 @@
 [adapters.llm]
 # Provider identifier and version
 provider = "ollama"
-version = "1.0.0"
+version = "0.0.1-alpha"
 
 # Provider-specific configuration (passed through to adapter)
 [adapters.llm.config]
@@ -50,8 +50,8 @@ version = "1.0.0"
 base_url = "http://localhost:11434"
 keep_alive = "5m"
 
-# Default model and parameters
-default_model = "llama3.2"
+# Default model and parameters - using available model from your setup
+default_model = "qwen2.5:7b-instruct"
 temperature = 0.7
 top_p = 0.9
 

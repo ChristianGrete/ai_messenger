@@ -1,16 +1,21 @@
-// WASM Adapter System - Public API exports
-//
-// This module provides the public interface for the WASM adapter system,
-// enabling config-driven loading and management of service adapters.
+//! WASM Adapter Runtime
+//!
+//! This module provides the WASM-based adapter architecture for ai_messenger.
+//! All service adapters (LLM, storage, TTS, etc.) run in sandboxed WASM modules.
 
+// Allow unused code during development phase
+#![allow(unused_imports, dead_code)]
+
+pub mod manifest;
 pub mod runtime;
 pub mod services;
 pub mod traits;
+pub mod wit;
 
 #[cfg(test)]
-mod tests;
+pub mod tests;
 
-// Re-export key types for public API
+pub use manifest::AdapterManifest;
 pub use runtime::WasmRuntime;
 pub use services::AdapterRegistry;
 pub use traits::{AdapterService, ServiceError};

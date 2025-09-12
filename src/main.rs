@@ -1,5 +1,6 @@
 use anyhow::Result;
 
+mod adapter;
 mod cli;
 mod config;
 mod routes;

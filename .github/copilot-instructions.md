@@ -34,6 +34,41 @@ WASM Storage Adapters → Physical Storage (JSON files, DB, etc.)
 
 This vision guides all design decisions: extensibility and security.
 
+## Manifest System Architecture
+
+The adapter manifest system provides metadata for UI consumption and adapter management.
+
+### Manifest Structure
+
+```rust
+pub struct AdapterManifest {
+    pub name: String,                    // Technical adapter name
+    pub version: String,                 // Adapter version
+    pub display_name: Option<String>,    // Optional UI-friendly name (no auto-fallback)
+    pub models: Option<Vec<String>>,     // Available models (if known)
+}
+```
+
+### Host-Side Loading
+
+- **Automatic Discovery**: AdapterRegistry loads manifests during adapter initialization
+- **Path Support**: Both `latest/` and versioned directory structures supported
+- **Default Fallback**: Missing manifests auto-generated from config values (no display_name)
+- **Frontend Freedom**: UI decides fallback strategy for missing display_name
+
+### File Locations
+
+```
+data_dir/adapters/{service}/{provider}/latest/manifest.json     # Preferred
+data_dir/adapters/{service}/{provider}/{version}/manifest.json  # Fallback
+```
+
+### Design Philosophy
+
+- **No Auto-Formatting**: display_name stays None if not explicitly set
+- **Separation of Concerns**: Backend provides raw data, frontend handles presentation
+- **UI Flexibility**: Frontend can implement different fallback strategies
+
 ## WASM Runtime Architecture
 
 The WASM adapter system follows a **generic runtime with service-specific traits** pattern for maximum scalability and type safety.
@@ -47,13 +82,11 @@ src/adapter/
 │   ├── mod.rs               # WasmRuntime struct
 │   ├── instance.rs          # WasmInstance management
 │   └── loader.rs            # WASM module loading
-├── services/                # Service-specific implementations
-│   ├── mod.rs              # Service registry
-│   ├── llm.rs              # LLM service adapter
-│   ├── storage.rs          # Storage service adapter
-│   ├── tts.rs              # Text-to-Speech (future)
-│   └── stt.rs              # Speech-to-Text (future)
-└── traits.rs               # Common adapter traits
+├── services/        # Service-specific implementations
+│   ├── mod.rs       # AdapterRegistry with manifest loading
+│   ├── llm.rs       # LLM service adapter (MVP: HTTP bypass)
+│   └── storage.rs   # Storage service adapter (MVP: HTTP bypass)
+└── traits.rs        # Common adapter traits
 ```
 
 ### Design Pattern
@@ -118,12 +151,69 @@ We version all resource endpoints under `/v1/*`. Health is intentionally unversi
 
 After any code changes, always run the complete QA pipeline to ensure code quality and prevent CI failures:
 
-1. **`cargo check`** - Fast compilation check for syntax errors
-2. **`cargo fmt`** - Automatic code formatting
-3. **`cargo clippy`** - Lint analysis and best practice enforcement
-4. **`cargo test`** - Full test suite validation
+1. **`cargo check --all-targets --all-features`** - Fast compilation check for syntax errors
+2. **`cargo fmt --all`** - Automatic code formatting
+3. **`cargo clippy --all-targets --all-features -- -D warnings`** - Lint analysis and best practice enforcement
+4. **`cargo test --all-targets --all-features`** - Full test suite validation
 
 This pipeline must pass completely before committing changes. Use `cargo fmt && cargo clippy && cargo test` for efficiency.
+
+## MVP Implementation Status
+
+### What's Currently Working
+
+- ✅ **Core Server**: Axum-based HTTP server with health endpoint
+- ✅ **Config System**: TOML-based configuration with path expansion
+- ✅ **CLI Interface**: Serve command with config discovery
+- ✅ **Message Endpoint**: `/v1/message/:id` fully functional
+- ✅ **Adapter Architecture**: Complete WASM infrastructure (dormant)
+- ✅ **Manifest System**: Host-side manifest loading with fallbacks
+- ✅ **Ollama Integration**: Direct HTTP calls to local Ollama instance
+
+### Current MVP Limitations
+
+- 🔄 **WASM Bypassed**: Adapters use direct HTTP calls instead of WASM modules
+- 🔄 **Single Provider**: Only Ollama LLM adapter implemented
+- 🔄 **No Persistence**: No storage adapter active
+- 🔄 **Limited Routes**: Only message sending implemented
+
+### WASM Activation Requirements
+
+To activate WASM adapters (when needed):
+
+1. Uncomment WASM loading in `src/adapter/services/llm.rs` and `storage.rs`
+2. Implement WIT bindings for adapter communication
+3. Build actual WASM modules for each provider
+4. Replace direct HTTP calls with WASM function calls
+
+**Design Decision**: MVP intentionally bypasses WASM for rapid development while preserving the complete architecture for future activation.
+
+## Code Analysis & Change Protocol
+
+**CRITICAL**: Before making ANY code changes, always follow this protocol to maintain codebase integrity:
+
+### Pre-Change Analysis (MANDATORY)
+
+1. **Analyze Existing Codebase**: Use semantic search, file search, and read existing files to understand current implementation
+2. **Check for Existing Implementations**: Verify if requested functionality already exists before creating duplicates
+3. **Understand Dependencies**: Review imports, exports, and module relationships to avoid conflicts
+4. **Assess Impact Scope**: Determine minimal change set required - avoid unnecessary modifications
+
+### Change Execution Principles
+
+- **Minimal Invasive**: Make only the smallest changes necessary to achieve the goal
+- **Incremental**: Break large changes into small, testable steps
+- **Conservative**: Preserve existing working code unless explicitly asked to refactor
+- **Verification**: Run QA pipeline after each change to ensure stability
+
+### Anti-Patterns to Avoid
+
+- ❌ **Assumption-Based Coding**: Don't assume what exists - verify first
+- ❌ **Scope Creep**: Don't implement unrequested features "while you're at it"
+- ❌ **Destructive Refactoring**: Don't restructure unless explicitly requested
+- ❌ **Duplicate Dependencies**: Always check existing imports before adding new ones
+
+**Remember**: Stability and incremental progress over ambitious changes that break the build.
 
 ## Project File Structure
 
@@ -132,29 +222,28 @@ This pipeline must pass completely before committing changes. Use `cargo fmt && 
 ```
 src/
   routes/
-    health.rs          # GET /
+    health.rs          # GET / (✅ Implemented)
     v1/
-      mod.rs           # build & return v1 router
+      mod.rs           # build & return v1 router (✅ Implemented)
       message/         # POST /v1/message/:id (send message, get AI response)
-        mod.rs         # ✅ Basic structure implemented
-      sender/          # 🚧 To be implemented
+        mod.rs         # ✅ Fully functional with HTTP bypass to Ollama
+      sender/          # 🚧 Partially implemented
+        mod.rs         # ✅ Basic structure
+        profile.rs     # 🚧 Stub implementation
+      recipients/      # � Future implementation
+        mod.rs
+      recipient/       # � Future implementation (/v1/recipient/:id/*)
         mod.rs
         profile.rs
         picture.rs
-      recipients/      # 🚧 Collection endpoints (list/create)
+      conversations/   # � Future implementation
         mod.rs
-      recipient/       # 🚧 Item subtree (/v1/recipient/:id/*)
-        mod.rs
-        profile.rs
-        picture.rs
-      conversations/   # 🚧 Collection endpoints (list/create)
-        mod.rs
-      conversation/    # 🚧 Item subtree (/v1/conversation/:id/*)
+      conversation/    # � Future implementation (/v1/conversation/:id/*)
         mod.rs
         # history / pagination handlers
 ```
 
-### Config System Structure (✅ Implemented)
+### Config System Structure (✅ Complete)
 
 ```
 src/config/
@@ -167,13 +256,20 @@ src/config/
 └── schema.rs        # TOML schema with adapter support
 ```
 
-### WASM Adapter Structure (🚧 Next Implementation Phase)
+### WASM Adapter Structure (✅ Infrastructure Complete, MVP Uses HTTP Bypass)
 
 ```
 src/adapter/
 ├── mod.rs           # Public API exports
-├── runtime/         # Generic WASM Runtime
+├── manifest.rs      # Adapter manifest system with host-side loading
+├── runtime/         # Generic WASM Runtime (complete infrastructure)
+│   ├── mod.rs       # WasmRuntime struct
+│   ├── instance.rs  # WasmInstance management
+│   └── loader.rs    # WASM module loading
 ├── services/        # Service-specific implementations
+│   ├── mod.rs       # AdapterRegistry with manifest loading
+│   ├── llm.rs       # LLM service adapter (MVP: HTTP bypass)
+│   └── storage.rs   # Storage service adapter (MVP: HTTP bypass)
 └── traits.rs        # Common adapter traits
 ```
 

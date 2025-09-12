@@ -1,7 +1,10 @@
 use super::router;
+use crate::adapter::services::AdapterRegistry;
 use crate::config::Config;
 use anyhow::Result;
 use std::path::PathBuf;
+use std::sync::Arc;
+use tokio::sync::RwLock;
 
 /// Server startup configuration
 #[derive(Debug)]
@@ -17,8 +20,32 @@ pub struct ServerStartupConfig {
 pub async fn start(startup_config: ServerStartupConfig) -> Result<()> {
     let base_path = &startup_config.config.server.base_path;
 
-    // Build the router
-    let app = router::build_router(base_path);
+    // Initialize adapter registry with configuration
+    let mut adapter_registry = AdapterRegistry::new().await?;
+
+    // Use data directory from config with fallback to defaults
+    let data_dir = if let Some(data_dir) = &startup_config.config.storage.data_dir {
+        crate::config::paths::expand_required_path(data_dir, startup_config.config_dir.as_deref())
+    } else {
+        // Use default data directory
+        crate::config::defaults::default_data_dir()
+    };
+
+    tracing::info!(
+        "Initializing adapters from config, data_dir: {:?}",
+        data_dir
+    );
+    adapter_registry
+        .initialize_from_config(&startup_config.config, &data_dir)
+        .await?;
+
+    tracing::info!("Adapters initialized successfully");
+
+    // Wrap registry in Arc<RwLock> for sharing across routes
+    let shared_registry = Arc::new(RwLock::new(adapter_registry));
+
+    // Build the router with adapter registry
+    let app = router::build_router(base_path, shared_registry);
 
     // Create listener
     let addr = format!("{}:{}", startup_config.host, startup_config.port);
