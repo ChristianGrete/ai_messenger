@@ -43,14 +43,22 @@ ai_messenger uses a TOML configuration file. It searches for config files in thi
 You can also specify a custom config file:
 
 ```sh
-ai_messenger serve --config /path/to/custom.toml
+ai_messenger serve --config path/to/custom.toml
 ```
+
+## License
+
+This project is licensed under **MIT-NC** (MIT License with _Non-Commercial clause_).
+
+- Free for personal and non-commercial use.
+- Commercial use requires a separate commercial license from the copyright holder.
+
+See the [LICENSE](./LICENSE) file for details.
 
 ---
 
-Copyright © 2025 ([MIT][repository-license-url]) [Christian Grete][repository-owner-url] and [contributors][repository-contributors-url]
+Copyright © 2025 ([MIT-NC][repository-license-url]) [Christian Grete][repository-owner-url]
 
-[repository-contributors-url]: https://github.com/ChristianGrete/ai_messenger/graphs/contributors
-[repository-github-url]: https://github.com/ChristianGrete/ai_messenger
+[repository-github-url]: https://github.com/ChristianGrete/ai\_messenger
 [repository-license-url]: LICENSE
 [repository-owner-url]: https://christiangrete.com
