@@ -1,4 +1,6 @@
+use std::collections::HashMap;
 use std::path::PathBuf;
+use toml::Table;
 
 const APP_DOMAIN: &str = "com.christiangrete.ai_messenger";
 
@@ -28,6 +30,39 @@ pub fn default_base_path() -> String {
     DEFAULT_SERVER_BASE_PATH.to_string()
 }
 
+/// Default adapter provider for LLM service
+pub const DEFAULT_LLM_PROVIDER: &str = "ollama";
+
+/// Default adapter version for all adapters
+pub const DEFAULT_ADAPTER_VERSION: &str = "latest";
+
+/// Get default LLM provider as String (for serde defaults)
+pub fn default_llm_provider() -> String {
+    DEFAULT_LLM_PROVIDER.to_string()
+}
+
+/// Get default adapter version as String (for serde defaults)
+pub fn default_adapter_version() -> String {
+    DEFAULT_ADAPTER_VERSION.to_string()
+}
+
+/// Get default adapter services HashMap (for serde defaults)
+pub fn default_adapter_services() -> HashMap<String, crate::config::schema::ServiceAdapterConfig> {
+    let mut services = HashMap::new();
+
+    // Add Ollama as default LLM adapter
+    services.insert(
+        "llm".to_string(),
+        crate::config::schema::ServiceAdapterConfig {
+            provider: default_llm_provider(),
+            version: default_adapter_version(),
+            config: toml::Value::Table(Table::new()),
+        },
+    );
+
+    services
+}
+
 /// Generic helper for platform-specific directories with fallbacks
 fn platform_dir_with_fallback<F>(dir_fn: F, local_fallback: &str) -> PathBuf
 where
@@ -52,7 +87,8 @@ pub fn default_cache_dir() -> PathBuf {
 
 /// Get the default config directory using platform-specific paths
 pub fn default_config_dir() -> PathBuf {
-    dirs::config_dir().unwrap_or_else(|| dirs::home_dir().unwrap_or_else(|| PathBuf::from(".")))
+    dirs::config_local_dir()
+        .unwrap_or_else(|| dirs::home_dir().unwrap_or_else(|| PathBuf::from(".")))
 }
 
 /// Get the platform-specific config file path
@@ -170,5 +206,42 @@ mod tests {
                 .to_string_lossy()
                 .contains(APP_DOMAIN)
         );
+    }
+
+    #[test]
+    fn test_default_llm_provider() {
+        assert_eq!(default_llm_provider(), "ollama");
+        assert_eq!(default_llm_provider(), DEFAULT_LLM_PROVIDER);
+    }
+
+    #[test]
+    fn test_default_adapter_version() {
+        assert_eq!(default_adapter_version(), "latest");
+        assert_eq!(default_adapter_version(), DEFAULT_ADAPTER_VERSION);
+    }
+
+    #[test]
+    fn test_default_adapter_services() {
+        let services = default_adapter_services();
+
+        // Should contain exactly one service: llm
+        assert_eq!(services.len(), 1);
+        assert!(services.contains_key("llm"));
+
+        let llm_config = services.get("llm").unwrap();
+        assert_eq!(llm_config.provider, "ollama");
+        assert_eq!(llm_config.version, "latest");
+
+        // Config should be empty table
+        match &llm_config.config {
+            toml::Value::Table(table) => assert!(table.is_empty()),
+            _ => panic!("Expected empty TOML table"),
+        }
+    }
+
+    #[test]
+    fn test_adapter_constants() {
+        assert_eq!(DEFAULT_LLM_PROVIDER, "ollama");
+        assert_eq!(DEFAULT_ADAPTER_VERSION, "latest");
     }
 }

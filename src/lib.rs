@@ -57,6 +57,7 @@
 //! ```
 
 // Re-export shared modules that are part of the public API
+pub mod adapter;
 pub mod config;
 pub mod utils;
 // TODO: Uncomment when implemented

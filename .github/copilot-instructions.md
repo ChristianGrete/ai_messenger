@@ -34,6 +34,51 @@ WASM Storage Adapters → Physical Storage (JSON files, DB, etc.)
 
 This vision guides all design decisions: extensibility and security.
 
+## WASM Runtime Architecture
+
+The WASM adapter system follows a **generic runtime with service-specific traits** pattern for maximum scalability and type safety.
+
+### File Structure
+
+```
+src/adapter/
+├── mod.rs                    # Public API exports
+├── runtime/                  # Generic WASM Runtime
+│   ├── mod.rs               # WasmRuntime struct
+│   ├── instance.rs          # WasmInstance management
+│   └── loader.rs            # WASM module loading
+├── services/                # Service-specific implementations
+│   ├── mod.rs              # Service registry
+│   ├── llm.rs              # LLM service adapter
+│   ├── storage.rs          # Storage service adapter
+│   ├── tts.rs              # Text-to-Speech (future)
+│   └── stt.rs              # Speech-to-Text (future)
+└── traits.rs               # Common adapter traits
+```
+
+### Design Pattern
+
+**Generic Runtime + Service-Specific Traits**:
+
+- Each service defines its own Rust trait (e.g., `LlmAdapter`, `StorageAdapter`)
+- Single `WasmRuntime` loads and manages all WASM modules
+- Service-specific wrappers provide type-safe interfaces
+- `AdapterRegistry` routes requests to appropriate adapters
+
+**Scalability**: New services require only:
+
+1. New WIT interface in `wit/`
+2. New trait in `services/`
+3. Registry entry
+4. Config schema is already generic
+
+**Benefits**:
+
+- Type-safe service interfaces
+- Unified WASM loading/management
+- Easy testing via trait mocking
+- Config-driven adapter loading
+
 ## Implementation Philosophy
 
 **Security & Privacy are non-negotiable top priorities.** Every implementation decision, architectural choice, and feature design must prioritize user data protection and privacy by design. When in doubt between convenience and security, always choose security. World-class privacy standards are a core requirement, not an optional feature.
@@ -80,9 +125,9 @@ After any code changes, always run the complete QA pipeline to ensure code quali
 
 This pipeline must pass completely before committing changes. Use `cargo fmt && cargo clippy && cargo test` for efficiency.
 
-## Project File Structure (Routes - To Be Implemented)
+## Project File Structure
 
-Routes structure to follow when implementing the server:
+### Routes Structure (Current Implementation Status)
 
 ```
 src/
@@ -90,29 +135,53 @@ src/
     health.rs          # GET /
     v1/
       mod.rs           # build & return v1 router
-      sender/
+      message/         # POST /v1/message/:id (send message, get AI response)
+        mod.rs         # ✅ Basic structure implemented
+      sender/          # 🚧 To be implemented
         mod.rs
         profile.rs
         picture.rs
-      recipients/       # collection endpoints (list/create) when implemented
+      recipients/      # 🚧 Collection endpoints (list/create)
         mod.rs
-      recipient/        # item subtree (/v1/recipient/:id/*)
+      recipient/       # 🚧 Item subtree (/v1/recipient/:id/*)
         mod.rs
         profile.rs
         picture.rs
-      conversations/    # collection endpoints (list/create) when implemented
+      conversations/   # 🚧 Collection endpoints (list/create)
         mod.rs
-      conversation/     # item subtree (/v1/conversation/:id/*)
+      conversation/    # 🚧 Item subtree (/v1/conversation/:id/*)
         mod.rs
-        # history / pagination handlers added later
-      message.rs        # POST /v1/message/:id (send message, get AI response)
+        # history / pagination handlers
+```
+
+### Config System Structure (✅ Implemented)
+
+```
+src/config/
+├── mod.rs           # Public exports
+├── creation.rs      # Config file creation
+├── defaults.rs      # Default values and constants
+├── discovery.rs     # Config file discovery
+├── loader.rs        # Config loading with fallbacks
+├── paths.rs         # Path expansion utilities
+└── schema.rs        # TOML schema with adapter support
+```
+
+### WASM Adapter Structure (🚧 Next Implementation Phase)
+
+```
+src/adapter/
+├── mod.rs           # Public API exports
+├── runtime/         # Generic WASM Runtime
+├── services/        # Service-specific implementations
+└── traits.rs        # Common adapter traits
 ```
 
 ## Notes on Route File Layout
 
 - URL hierarchy mirrored directly under `routes/v1/`.
 - Mixed plural/singular by design: plural for collections; singular dedicated subtrees for focused item operations.
-- `message.rs` is an action endpoint (not a collection) → stays singular.
+- `message/` is an action endpoint module (not a collection) → organized as directory for handler logic.
 - **`mod.rs` files**: Pure module composition only - build routers, export submodules, NO handler logic.
 - Handlers: extract / validate → delegate to service/domain.
 - Avoid premature abstraction layers; add only when duplication or complexity emerges.

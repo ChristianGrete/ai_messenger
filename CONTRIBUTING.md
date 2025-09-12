@@ -2,7 +2,7 @@
 
 ## 🚧 Early Development Phase
 
-**ai_messenger** is currently in the very early stages of development. The project is actively being architected and the core foundation is still being built.
+**ai\_messenger** is currently in the very early stages of development. The project is actively being architected and the core foundation is still being built.
 
 **Contributions are not being accepted at this time** as the project structure, APIs, and fundamental design decisions are still in flux. We appreciate your interest, but please check back once the project reaches a more stable state.
 
@@ -15,15 +15,40 @@ We'll update this document once the project is ready for community contributions
 
 ---
 
+## Legal Requirements
+
+### Contributor License Agreement (CLA)
+
+By submitting a pull request, you agree to the terms described in the [CLA](./CLA.md).
+
+This ensures that:
+
+- You keep the copyright of your contributions.
+- You grant the project owner the right to use, modify, and distribute your contributions under the project's license (MIT-NC + future commercial licenses).
+- You waive any claim for royalties or compensation, even for commercial use.
+
+We cannot accept contributions without this agreement.
+
+### Project License
+
+This project is licensed under **MIT-NC** (MIT License with _Non-Commercial clause_).
+
+- Free for personal and non-commercial use.
+- Commercial use requires a separate commercial license from the copyright holder.
+
+See the [LICENSE](./LICENSE) file for details.
+
+---
+
 ## Future Contribution Guidelines
 
 *This section will be expanded once contributions are welcome.*
 
 ---
 
-Copyright © 2025 ([MIT][repository-license-url]) [Christian Grete][repository-owner-url] and [contributors][repository-contributors-url]
+Copyright © 2025 ([MIT-NC][repository-license-url]) [Christian Grete][repository-owner-url]
 
-[repository-contributors-url]: https://github.com/ChristianGrete/ai_messenger/graphs/contributors
-[repository-github-url]: https://github.com/ChristianGrete/ai_messenger
+[repository-contributors-url]: https://github.com/ChristianGrete/ai\_messenger/graphs/contributors
+[repository-github-url]: https://github.com/ChristianGrete/ai\_messenger
 [repository-license-url]: LICENSE
 [repository-owner-url]: https://christiangrete.com
