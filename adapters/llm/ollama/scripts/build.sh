@@ -6,13 +6,13 @@ set -euo pipefail
 # for development and testing. In production, adapters will be separate repositories.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-ADAPTER_DIR="$PROJECT_ROOT/adapters/llm/ollama"
+ADAPTER_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+PROJECT_ROOT="$(cd "$ADAPTER_DIR/../../.." && pwd)"
 ADAPTER_VERSION="0.0.1-alpha"
 
 echo "🔧 Building Ollama LLM adapter..."
 
-# Get data directory from the main binary
+# Get data directory from the main binary (executed from project root)
 DATA_DIR="$(cd "$PROJECT_ROOT" && cargo run -- data)"
 TARGET_DIR="$DATA_DIR/adapters/llm/ollama/$ADAPTER_VERSION"
 LATEST_DIR="$DATA_DIR/adapters/llm/ollama/latest"

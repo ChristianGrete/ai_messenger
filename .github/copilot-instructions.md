@@ -210,12 +210,13 @@ adapters/llm/ollama/ # ✅ Complete WASM Component
 ├── src/
 │   ├── lib.rs       # WASM Component with WIT bindings
 │   └── bindings.rs  # Generated WIT bindings
+├── scripts/
+│   └── build.sh     # WASM Component build pipeline
 ├── wit/
 │   └── world.wit    # Component interface definition
 └── Cargo.toml       # cargo-component configuration
 
 wit/llm.wit         # ✅ Master WIT interface definition
-scripts/build_adapter_llm_ollama.sh  # ✅ WASM Component build pipeline
 ```
 
 ## Route File Layout Notes
