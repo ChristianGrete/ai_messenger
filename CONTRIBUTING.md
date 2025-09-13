@@ -31,12 +31,12 @@ We cannot accept contributions without this agreement.
 
 ### Project License
 
-This project is licensed under **MIT-NC** (MIT License with _Non-Commercial clause_).
+This project is licensed under **MIT-NC** (MIT _Non-Commercial_ License).
 
 - Free for personal and non-commercial use.
-- Commercial use requires a separate commercial license from the copyright holder.
+- Commercial use requires a separate license from the copyright holder.
 
-See the [LICENSE](./LICENSE) file for details.
+See the [LICENSE][repository-license-url] file for full terms.
 
 ---
 

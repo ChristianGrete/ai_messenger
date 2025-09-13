@@ -9,11 +9,13 @@ By contributing to this project, you agree to the following terms:
    You grant the copyright holder (Christian Grete) a perpetual, worldwide,
    non-exclusive, irrevocable, royalty-free license to use, reproduce, modify,
    distribute, sublicense, and create derivative works from your contributions
-   under the project's licensing terms (MIT-NC and any future commercial licenses).
+   under the project's licensing terms (MIT-NC and any future commercial licenses),
+   so that the project can remain free for non-commercial use while allowing the
+   copyright holder to offer commercial licenses.
 
 3. **No Compensation**
    You waive any claim for compensation or royalties related to the use of your
-   contributions, including commercial use.
+   contributions, including in commercial licensing.
 
 4. **Eligibility**
    You confirm that your contributions are your own work or that you have the
