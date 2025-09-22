@@ -15,7 +15,7 @@
 # Server port (default: 8080)
 # port = 3000
 
-[storage]
+[paths]
 # Custom data directory for persistent storage (optional)
 # If not set, uses platform-specific directory:
 # - macOS: ~/Library/Application Support/com.christiangrete.ai_messenger

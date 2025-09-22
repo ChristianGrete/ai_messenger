@@ -89,8 +89,8 @@ mod tests {
         assert_eq!(parsed_config.server.host, "127.0.0.1");
         assert_eq!(parsed_config.server.port, 8080);
         assert_eq!(parsed_config.server.base_path, "");
-        assert_eq!(parsed_config.storage.data_dir, None);
-        assert_eq!(parsed_config.storage.cache_dir, None);
+        assert_eq!(parsed_config.paths.data_dir, None);
+        assert_eq!(parsed_config.paths.cache_dir, None);
     }
 
     #[test]
@@ -120,7 +120,7 @@ mod tests {
         let mut custom_config = Config::default();
         custom_config.server.host = "192.168.1.1".to_string();
         custom_config.server.port = 9000;
-        custom_config.storage.data_dir = Some("/custom/data".into());
+        custom_config.paths.data_dir = Some("/custom/data".into());
 
         let result = create_config_file(&config_path, &custom_config);
         assert!(result.is_ok());
@@ -133,7 +133,7 @@ mod tests {
 
         assert_eq!(parsed_config.server.host, "192.168.1.1");
         assert_eq!(parsed_config.server.port, 9000);
-        assert_eq!(parsed_config.storage.data_dir, Some("/custom/data".into()));
+        assert_eq!(parsed_config.paths.data_dir, Some("/custom/data".into()));
     }
 
     #[test]

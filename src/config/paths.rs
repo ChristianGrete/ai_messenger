@@ -4,14 +4,14 @@ use super::{defaults, path_expansion, schema::Config};
 
 /// Get the effective data directory for storing persistent data
 pub fn data_dir(config: &Config, config_dir: Option<&std::path::Path>) -> PathBuf {
-    expand_optional_path(config.storage.data_dir.as_ref(), config_dir, || {
+    expand_optional_path(config.paths.data_dir.as_ref(), config_dir, || {
         defaults::default_data_dir()
     })
 }
 
 /// Get the effective cache directory for storing temporary data
 pub fn cache_dir(config: &Config, config_dir: Option<&std::path::Path>) -> PathBuf {
-    expand_optional_path(config.storage.cache_dir.as_ref(), config_dir, || {
+    expand_optional_path(config.paths.cache_dir.as_ref(), config_dir, || {
         defaults::default_cache_dir()
     })
 }
@@ -78,7 +78,7 @@ mod tests {
     #[test]
     fn test_data_dir_with_config_override() {
         let config = Config {
-            storage: schema::StorageConfig {
+            paths: schema::PathsConfig {
                 data_dir: Some("/custom/data".into()),
                 cache_dir: None,
             },
@@ -102,7 +102,7 @@ mod tests {
     #[test]
     fn test_cache_dir_with_config_override() {
         let config = Config {
-            storage: schema::StorageConfig {
+            paths: schema::PathsConfig {
                 data_dir: None,
                 cache_dir: Some("/custom/cache".into()),
             },
@@ -126,7 +126,7 @@ mod tests {
     #[test]
     fn test_data_and_cache_dir_independence() {
         let config = Config {
-            storage: schema::StorageConfig {
+            paths: schema::PathsConfig {
                 data_dir: Some("/custom/data".into()),
                 cache_dir: Some("/custom/cache".into()),
             },
@@ -144,7 +144,7 @@ mod tests {
     #[test]
     fn test_data_dir_with_tilde_expansion() {
         let config = Config {
-            storage: schema::StorageConfig {
+            paths: schema::PathsConfig {
                 data_dir: Some("~/custom/data".into()),
                 cache_dir: None,
             },
@@ -162,7 +162,7 @@ mod tests {
     #[test]
     fn test_cache_dir_with_dollar_home_expansion() {
         let config = Config {
-            storage: schema::StorageConfig {
+            paths: schema::PathsConfig {
                 data_dir: None,
                 cache_dir: Some("$HOME/.cache/ai_messenger".into()),
             },
@@ -184,7 +184,7 @@ mod tests {
     #[test]
     fn test_data_dir_absolute_path_unchanged() {
         let config = Config {
-            storage: schema::StorageConfig {
+            paths: schema::PathsConfig {
                 data_dir: Some("/absolute/path/data".into()),
                 cache_dir: None,
             },
@@ -200,7 +200,7 @@ mod tests {
     #[test]
     fn test_config_with_both_expansions() {
         let config = Config {
-            storage: schema::StorageConfig {
+            paths: schema::PathsConfig {
                 data_dir: Some("~/data".into()),
                 cache_dir: Some("$HOME/cache".into()),
             },
@@ -223,7 +223,7 @@ mod tests {
     #[test]
     fn test_config_relative_paths_unchanged() {
         let config = Config {
-            storage: schema::StorageConfig {
+            paths: schema::PathsConfig {
                 data_dir: Some("./relative/data".into()),
                 cache_dir: Some("relative/cache".into()),
             },
@@ -241,7 +241,7 @@ mod tests {
     #[test]
     fn test_config_complex_expansion_patterns() {
         let config = Config {
-            storage: schema::StorageConfig {
+            paths: schema::PathsConfig {
                 data_dir: Some("$HOME/.local/share/app/data".into()),
                 cache_dir: Some("~/Library/Caches/app".into()),
             },
@@ -262,7 +262,7 @@ mod tests {
     #[test]
     fn test_config_with_unicode_paths() {
         let config = Config {
-            storage: schema::StorageConfig {
+            paths: schema::PathsConfig {
                 data_dir: Some("~/Documents/测试应用/数据".into()),
                 cache_dir: Some("$HOME/Cache/äöü-app".into()),
             },
@@ -350,7 +350,7 @@ mod tests {
         use super::super::schema::*;
 
         let config = Config {
-            storage: StorageConfig {
+            paths: PathsConfig {
                 data_dir: Some("./relative/to/config".into()),
                 cache_dir: Some("../another/relative".into()),
             },
@@ -397,7 +397,7 @@ mod tests {
         let long_path = format!("~/{}", long_component);
 
         let config = Config {
-            storage: StorageConfig {
+            paths: PathsConfig {
                 data_dir: Some(long_path.clone().into()),
                 cache_dir: Some(long_path.into()),
             },

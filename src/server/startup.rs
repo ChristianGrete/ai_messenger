@@ -24,7 +24,7 @@ pub async fn start(startup_config: ServerStartupConfig) -> Result<()> {
     let mut adapter_registry = AdapterRegistry::new().await?;
 
     // Use data directory from config with fallback to defaults
-    let data_dir = if let Some(data_dir) = &startup_config.config.storage.data_dir {
+    let data_dir = if let Some(data_dir) = &startup_config.config.paths.data_dir {
         crate::config::paths::expand_required_path(data_dir, startup_config.config_dir.as_deref())
     } else {
         // Use default data directory

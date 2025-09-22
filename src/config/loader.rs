@@ -47,7 +47,7 @@ mod tests {
 host = "0.0.0.0"
 port = 4000
 
-[storage]
+[paths]
 data_dir = "/override/data"
 "#;
 
@@ -58,7 +58,7 @@ data_dir = "/override/data"
 
         assert_eq!(config.server.host, "0.0.0.0");
         assert_eq!(config.server.port, 4000);
-        assert_eq!(config.storage.data_dir, Some("/override/data".into()));
+        assert_eq!(config.paths.data_dir, Some("/override/data".into()));
         assert!(config_dir.is_some());
     }
 

@@ -135,7 +135,7 @@ mod tests {
 host = "0.0.0.0"
 port = 3000
 
-[storage]
+[paths]
 data_dir = "/test/data"
 "#;
 
@@ -146,7 +146,7 @@ data_dir = "/test/data"
 
         assert_eq!(config.server.host, "0.0.0.0");
         assert_eq!(config.server.port, 3000);
-        assert_eq!(config.storage.data_dir, Some("/test/data".into()));
+        assert_eq!(config.paths.data_dir, Some("/test/data".into()));
     }
 
     #[test]
@@ -196,7 +196,7 @@ host = "broken
         // Should have default values
         assert_eq!(config.server.host, "127.0.0.1");
         assert_eq!(config.server.port, 8080);
-        assert_eq!(config.storage.data_dir, None);
+        assert_eq!(config.paths.data_dir, None);
     }
 
     #[test]
@@ -207,7 +207,7 @@ host = "broken
         // Should have default values
         assert_eq!(config.server.host, "127.0.0.1");
         assert_eq!(config.server.port, 8080);
-        assert_eq!(config.storage.data_dir, None);
+        assert_eq!(config.paths.data_dir, None);
     }
 
     #[test]
@@ -293,7 +293,7 @@ port = 9999
         // Should have custom port but default host
         assert_eq!(config.server.host, "127.0.0.1");
         assert_eq!(config.server.port, 9999);
-        assert_eq!(config.storage.data_dir, None);
+        assert_eq!(config.paths.data_dir, None);
     }
 
     #[test]
@@ -310,8 +310,8 @@ port = 9999
         assert_eq!(config.server.host, "127.0.0.1");
         assert_eq!(config.server.port, 8080);
         assert_eq!(config.server.base_path, "");
-        assert_eq!(config.storage.data_dir, None);
-        assert_eq!(config.storage.cache_dir, None);
+        assert_eq!(config.paths.data_dir, None);
+        assert_eq!(config.paths.cache_dir, None);
     }
 
     #[test]

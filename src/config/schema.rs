@@ -8,9 +8,9 @@ pub struct Config {
     #[serde(default)]
     pub adapters: AdapterConfig,
     #[serde(default)]
-    pub server: ServerConfig,
+    pub paths: PathsConfig,
     #[serde(default)]
-    pub storage: StorageConfig,
+    pub server: ServerConfig,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -24,7 +24,7 @@ pub struct ServerConfig {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct StorageConfig {
+pub struct PathsConfig {
     /// Optional override for data directory
     pub data_dir: Option<PathBuf>,
     /// Optional override for cache directory
@@ -174,8 +174,8 @@ mod tests {
         assert_eq!(config.server.base_path, "");
         assert_eq!(config.server.host, "127.0.0.1");
         assert_eq!(config.server.port, 8080);
-        assert_eq!(config.storage.data_dir, None);
-        assert_eq!(config.storage.cache_dir, None);
+        assert_eq!(config.paths.data_dir, None);
+        assert_eq!(config.paths.cache_dir, None);
 
         // Test adapter defaults
         assert_eq!(config.adapters.services.len(), 1);
@@ -208,7 +208,7 @@ base_path = "api"
 host = "0.0.0.0"
 port = 3000
 
-[storage]
+[paths]
 data_dir = "/custom/data"
 cache_dir = "/custom/cache"
 "#;
@@ -218,8 +218,8 @@ cache_dir = "/custom/cache"
         assert_eq!(config.server.base_path, "api");
         assert_eq!(config.server.host, "0.0.0.0");
         assert_eq!(config.server.port, 3000);
-        assert_eq!(config.storage.data_dir, Some("/custom/data".into()));
-        assert_eq!(config.storage.cache_dir, Some("/custom/cache".into()));
+        assert_eq!(config.paths.data_dir, Some("/custom/data".into()));
+        assert_eq!(config.paths.cache_dir, Some("/custom/cache".into()));
     }
 
     #[test]
@@ -235,8 +235,8 @@ port = 9000
         assert_eq!(config.server.base_path, "");
         assert_eq!(config.server.host, "127.0.0.1");
         assert_eq!(config.server.port, 9000);
-        assert_eq!(config.storage.data_dir, None);
-        assert_eq!(config.storage.cache_dir, None);
+        assert_eq!(config.paths.data_dir, None);
+        assert_eq!(config.paths.cache_dir, None);
     }
 
     #[test]
@@ -249,14 +249,14 @@ port = 9000
         assert_eq!(config.server.base_path, "");
         assert_eq!(config.server.host, "127.0.0.1");
         assert_eq!(config.server.port, 8080);
-        assert_eq!(config.storage.data_dir, None);
-        assert_eq!(config.storage.cache_dir, None);
+        assert_eq!(config.paths.data_dir, None);
+        assert_eq!(config.paths.cache_dir, None);
     }
 
     #[test]
     fn test_config_storage_only() {
         let toml_content = r#"
-[storage]
+[paths]
 data_dir = "/my/data"
 "#;
 
@@ -268,8 +268,8 @@ data_dir = "/my/data"
         assert_eq!(config.server.host, "127.0.0.1");
         assert_eq!(config.server.port, 8080);
         // Storage should have custom data_dir
-        assert_eq!(config.storage.data_dir, Some("/my/data".into()));
-        assert_eq!(config.storage.cache_dir, None);
+        assert_eq!(config.paths.data_dir, Some("/my/data".into()));
+        assert_eq!(config.paths.cache_dir, None);
     }
 
     #[test]
@@ -302,7 +302,7 @@ port = "not_a_number"
                 host: "0.0.0.0".to_string(),
                 port: 3000,
             },
-            storage: StorageConfig {
+            paths: PathsConfig {
                 data_dir: Some("/test/data".into()),
                 cache_dir: Some("/test/cache".into()),
             },
@@ -320,8 +320,8 @@ port = "not_a_number"
         assert_eq!(original.server.base_path, deserialized.server.base_path);
         assert_eq!(original.server.host, deserialized.server.host);
         assert_eq!(original.server.port, deserialized.server.port);
-        assert_eq!(original.storage.data_dir, deserialized.storage.data_dir);
-        assert_eq!(original.storage.cache_dir, deserialized.storage.cache_dir);
+        assert_eq!(original.paths.data_dir, deserialized.paths.data_dir);
+        assert_eq!(original.paths.cache_dir, deserialized.paths.cache_dir);
     }
 
     #[test]

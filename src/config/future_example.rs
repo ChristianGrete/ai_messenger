@@ -54,7 +54,7 @@ pub struct FutureConfig {
     pub server: crate::config::schema::ServerConfig,
 
     #[serde(default)]
-    pub storage: crate::config::schema::StorageConfig,
+    pub paths: crate::config::schema::PathsConfig,
 
     // Future config sections:
     #[serde(default)]
@@ -158,7 +158,7 @@ fn default_models_cache_dir() -> PathBuf {
 // host = "127.0.0.1"
 // port = 8080
 //
-// [storage]
+// [paths]
 // data_dir = "~/my_app/data"
 // cache_dir = "$HOME/.cache/my_app"
 //
@@ -183,7 +183,7 @@ mod tests {
     fn test_future_config_path_expansion() {
         let config = FutureConfig {
             server: Default::default(),
-            storage: Default::default(),
+            paths: Default::default(),
             logging: LoggingConfig {
                 log_file: Some("~/logs/app.log".into()),
                 error_log: Some("$HOME/logs/error.log".into()),
