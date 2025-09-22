@@ -77,9 +77,63 @@ The complete interface is defined in `wit/llm.wit` with the `llm-adapter` world:
 - Host uses `wasmtime::component::bindgen` for type-safe integration
 - `AdapterRegistry` manages component lifecycle and discovery
 
+## Storage Adapter Architecture
+
+The storage system uses a **key-value abstraction** with pluggable backends via WASM adapters for maximum flexibility.
+
+### Design Philosophy
+
+**Custom Interfaces vs. WASI Standards:**
+
+- **Storage**: Custom key-value interface preferred over WASI filesystem (too low-level)
+- **HTTP**: Custom AI-domain interface preferred over WASI HTTP (better host control & AI semantics)
+- **Rationale**: Domain-specific abstractions provide better developer experience and host control
+
+### Storage Provider Naming
+
+Storage providers are named by their **data format/technology**, not implementation details:
+
+- ✅ `json` → JSON file storage (filesystem implied)
+- ✅ `sqlite` → SQLite database storage
+- ✅ `postgres` → PostgreSQL storage
+- ✅ `redis` → Redis key-value storage
+- ✅ `s3` → Object storage (AWS S3, MinIO, etc.)
+- ✅ `memory` → In-memory storage (dev/testing)
+
+**Anti-patterns:**
+
+- ❌ `json-file` → Redundant (JSON implies files)
+- ❌ `filesystem` → Too generic
+- ❌ `local` → Implementation detail, not format
+
+### Key-Value Interface
+
+All storage adapters implement a unified key-value interface:
+
+```wit
+interface storage {
+  store: func(key: string, data: list<u8>) -> result<_, error>;
+  retrieve: func(key: string) -> result<list<u8>, error>;
+  delete: func(key: string) -> result<_, error>;
+  exists: func(key: string) -> result<bool, error>;
+  list-keys: func(prefix: option<string>) -> result<list<string>, error>;
+}
+```
+
+### Use Cases & Provider Mapping
+
+- **Development**: `json` (human-readable, version-controllable)
+- **Production Local**: `sqlite` (ACID, embedded)
+- **Production Distributed**: `postgres` (scalable, robust)
+- **Cache Layer**: `redis` (fast, ephemeral)
+- **Object Storage**: `s3` (distributed, blob storage)
+- **Testing**: `memory` (fast, isolated)
+
 ## Implementation Philosophy
 
 **Security & Privacy are non-negotiable top priorities.** Every implementation decision, architectural choice, and feature design must prioritize user data protection and privacy by design. When in doubt between convenience and security, always choose security. World-class privacy standards are a core requirement, not an optional feature.
+
+**No Authentication/Authorization/Roles System**: This platform is intentionally designed as a **local, single-user tool** without any auth/permissions/roles complexity. All data access is assumed to be local and trusted. The security model relies on OS-level permissions and WASM sandboxing, not application-level access control.
 
 ## Language & Style
 

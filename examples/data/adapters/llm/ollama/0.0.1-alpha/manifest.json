@@ -1,0 +1,6 @@
+{
+  "name": "ollama",
+  "version": "1.0.0",
+  "display_name": "Ollama Local LLM",
+  "models": null
+}
