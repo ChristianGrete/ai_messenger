@@ -1,0 +1,97 @@
+// Storage Adapter Interface
+// Designed to be backend-agnostic while supporting various storage technologies
+
+package ai-messenger:storage@0.0.1-alpha;
+
+interface types {
+  /// Storage operation errors
+  variant storage-error {
+    /// Path or key not found
+    not-found(string),
+    /// Permission denied or access error
+    access-denied(string),
+    /// Invalid data format or corruption
+    invalid-data(string),
+    /// Connection or network error (for remote storage)
+    connection-error(string),
+    /// Storage capacity exceeded
+    capacity-exceeded(string),
+    /// Generic storage error with message
+    generic(string),
+  }
+
+  /// HTTP response structure for web-based storage backends
+  record http-response {
+    /// HTTP status code
+    status-code: u16,
+
+    /// Response headers as key-value pairs
+    headers: list<tuple<string, string>>,
+
+    /// Response body as string
+    body: option<string>,
+  }
+
+  /// HTTP request configuration for web-based storage
+  record http-config {
+    /// HTTP method (GET, POST, PUT, DELETE, etc.)
+    method: string,
+
+    /// Full URL to send the request to
+    url: string,
+
+    /// HTTP headers as key-value pairs
+    headers: list<tuple<string, string>>,
+
+    /// Request body as string
+    body: option<string>,
+  }
+}
+
+/// Main storage adapter interface
+interface storage {
+  use types.{storage-error};
+
+  /// Retrieve data from storage by path
+  /// Returns the JSON string data for the given path
+  get: func(path: string) -> result<string, storage-error>;
+
+  /// Store data to storage at the given path
+  /// Data should be a valid JSON string
+  set: func(path: string, data: string) -> result<_, storage-error>;
+
+  /// Delete data at the given path
+  /// Returns success even if path doesn't exist (idempotent)
+  delete: func(path: string) -> result<_, storage-error>;
+
+  /// Check if data exists at the given path
+  exists: func(path: string) -> result<bool, storage-error>;
+
+  /// List all paths matching the given prefix
+  /// Returns a list of full paths that start with the prefix
+  %list: func(prefix: string) -> result<list<string>, storage-error>;
+}
+
+/// Host capabilities for storage adapter backends
+///
+/// Different adapters can use different host-provided capabilities
+/// based on their implementation needs
+interface host-capabilities {
+  use types.{http-response, http-config, storage-error};
+
+  /// File system operations for file-based storage
+  file-read: func(path: string) -> result<list<u8>, storage-error>;
+  file-write: func(path: string, data: list<u8>) -> result<_, storage-error>;
+  file-delete: func(path: string) -> result<_, storage-error>;
+  file-exists: func(path: string) -> result<bool, storage-error>;
+  file-list: func(dir: string) -> result<list<string>, storage-error>;
+
+  /// HTTP operations for web-based storage (REST APIs, etc.)
+  http-request: func(config: http-config) -> result<http-response, storage-error>;
+}
+
+/// World definition for storage adapters
+world storage-adapter {
+  export storage;
+  import host-capabilities;
+}

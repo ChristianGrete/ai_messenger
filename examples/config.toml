@@ -58,6 +58,37 @@ top_p = 0.9
 # Optional: JSON output format for structured responses
 # format = "json"
 
+# Storage adapter configuration
+[adapters.storage]
+# Provider identifier and version
+provider = "json"
+version = "0.0.1-alpha"
+
+# Provider-specific configuration (passed through to adapter)
+[adapters.storage.config]
+# JSON storage adapter configuration
+# The JSON adapter stores data as individual JSON files in data_dir/storage/
+# Following the hierarchical structure: group/sender/recipient/chat/
+#
+# No additional configuration needed - uses paths.data_dir automatically
+# Future storage adapters may require additional configuration:
+#
+# For SQLite adapter:
+# file_path = "storage.db"  # Relative to data_dir, defaults to "storage.db"
+#
+# For PostgreSQL adapter:
+# connection_string = "postgres://user:pass@localhost/ai_messenger"
+# # OR individual connection parameters:
+# # host = "localhost"
+# # port = 5432
+# # database = "ai_messenger"
+# # username = "user"
+# # password = "pass"
+#
+# For Redis adapter:
+# connection_string = "redis://localhost:6379"
+# database = 0
+
 # Future TTS adapter example (commented out)
 # [adapters.tts]
 # provider = "fish-audio"
