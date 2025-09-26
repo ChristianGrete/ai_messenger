@@ -86,6 +86,11 @@ interface host-capabilities {
   file-exists: func(path: string) -> result<bool, storage-error>;
   file-list: func(dir: string) -> result<list<string>, storage-error>;
 
+  /// Directory operations for file-based storage
+  dir-create: func(path: string) -> result<_, storage-error>;
+  dir-delete: func(path: string) -> result<_, storage-error>;
+  dir-exists: func(path: string) -> result<bool, storage-error>;
+
   /// HTTP operations for web-based storage (REST APIs, etc.)
   http-request: func(config: http-config) -> result<http-response, storage-error>;
 }
